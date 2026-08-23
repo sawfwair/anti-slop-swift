@@ -224,6 +224,9 @@ public final class NoHardcodedSecretsRule: SlopRule {
                 !looksLikeEnvironmentVariableName(literal),
                 !(looksLikeIdentifier(literal) && hasKeyLikeName(pattern.identifier.text))
             else { continue }
+            // Same escape hatch as the force operations: a deliberate local
+            // credential can be kept, but its presence must be stated.
+            if hasPrecedingSafetyComment(for: initializer) { continue }
             report(
                 initializer,
                 message:
