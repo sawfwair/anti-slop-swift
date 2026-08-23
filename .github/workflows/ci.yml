@@ -33,3 +33,8 @@ jobs:
       # Dogfood: the linter must accept its own sources. The only permitted
       # hits are the no-shape-in-symbol-names rule referring to itself.
       - run: swift run anti-slop Sources Tests --disable=no-shape-in-symbol-names
+      # The bundled install-skill assets must stay identical to Sources/.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node scripts/sync-skill-assets.mjs --check

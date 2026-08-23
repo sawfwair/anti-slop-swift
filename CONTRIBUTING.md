@@ -16,9 +16,10 @@ anti-slop-swift is opinionated by design. The bar for a new rule is not "this st
 swift build          # zero warnings
 swift test           # all green
 swift run anti-slop Sources Tests --disable=no-shape-in-symbol-names
+node scripts/sync-skill-assets.mjs --check
 ```
 
-The dogfood step must be clean; the shape rule is the only permitted self-reference. CI enforces all three on macOS and Linux.
+The dogfood step must be clean; the shape rule is the only permitted self-reference. CI enforces all four on macOS and Linux.
 
 ## Porting rules from upstream
 

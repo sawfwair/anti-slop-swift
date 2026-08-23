@@ -14,7 +14,19 @@ Sources/Payments/RefundService.swift:58:9: error: [no-swallowed-errors] Empty ca
 
 This project is meant to be vendored, not treated as a fixed dependency. Copy the rules into your repository, read them, and change them to match your team's standards. After that, the vendored files are yours to maintain and make your own.
 
-## Install
+## Install with an agent skill
+
+```bash
+npx skills add sawfwair/anti-slop-swift --skill install-anti-slop-swift
+```
+
+Then ask your coding agent to install or configure anti-slop-swift in the current repository. The skill copies the package to `tools/anti-slop-swift/`, establishes a lint baseline, and wires the linter into CI. To inspect available skills first:
+
+```bash
+npx skills add sawfwair/anti-slop-swift --list
+```
+
+## Manual installation
 Copy the package into your repository, for example at `tools/anti-slop-swift/`, then run:
 
 ```bash
@@ -255,9 +267,10 @@ Swift has no spread syntax, module mocking, or Effect ecosystem, so `no-conditio
 swift build
 swift test
 .build/debug/anti-slop Sources Tests
+node scripts/sync-skill-assets.mjs --check
 ```
 
-`Sources/AntiSlopCore/` is canonical. See `AGENTS.md` for contribution guidance.
+`Sources/AntiSlopCore/` is canonical. After changing production source, run `node scripts/sync-skill-assets.mjs` so the install skill's bundled assets stay identical; CI enforces this. See `AGENTS.md` and `CONTRIBUTING.md` for contribution guidance.
 
 ## License
 
