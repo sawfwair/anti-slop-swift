@@ -164,16 +164,15 @@ final class SwiftSlopRuleTests: XCTestCase {
 
     // MARK: no-bool-literal-comparisons
 
-    func testEqualsTrueIsRejected() {
-        assertViolation("if flag == true {}", NoBoolLiteralComparisonsRule.self)
-    }
-
-    func testNotEqualsFalseIsRejected() {
-        assertViolation("if flag != false {}", NoBoolLiteralComparisonsRule.self)
-    }
-
     func testTernaryOfLiteralsIsRejected() {
         assertViolation("let enabled = flag ? true : false", NoBoolLiteralComparisonsRule.self)
+    }
+
+    func testBinaryBoolLiteralComparisonsAreAllowed() {
+        // Optional Bools make `x == true` meaningful; a syntax-level linter
+        // cannot see operand types, so binary comparisons are not flagged.
+        assertClean("if flag == true {}", NoBoolLiteralComparisonsRule.self)
+        assertClean("if flag != false {}", NoBoolLiteralComparisonsRule.self)
     }
 
     func testDirectConditionIsClean() {
@@ -212,6 +211,14 @@ final class SwiftSlopRuleTests: XCTestCase {
     func testInnocentTokenNamesAreClean() {
         assertClean("let tokenizer = Tokenizer()", NoHardcodedSecretsRule.self)
         assertClean("let tokenCount = 3", NoHardcodedSecretsRule.self)
+    }
+
+    func testEnvironmentVariableNameLiteralsAreClean() {
+        // A SCREAMING_CASE literal is an env-var name, not a committed secret.
+        assertClean(
+            "let apiKeyName = \"MERERUN_API_KEY\"",
+            NoHardcodedSecretsRule.self
+        )
     }
 
     func testEmptyAndInterpolatedStringsAreClean() {

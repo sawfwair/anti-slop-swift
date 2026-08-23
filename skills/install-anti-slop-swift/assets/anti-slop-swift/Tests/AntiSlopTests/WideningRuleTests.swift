@@ -50,8 +50,10 @@ final class WideningRuleTests: XCTestCase {
         assertViolation("let items: AnyObject = [1, 2, 3]", NoKnownValueWideningRule.self)
     }
 
-    func testOpenDictionaryAnnotationDiscardingKnownKeysIsRejected() {
-        assertViolation(
+    func testOpenDictionaryAnnotationWithKnownKeysIsAllowed() {
+        // Idiomatic Swift for small typed constants; upstream's Record slice
+        // does not port.
+        assertClean(
             "struct Handler {}; let h = Handler(); let handlers: [String: Handler] = [\"start\": h]",
             NoKnownValueWideningRule.self
         )

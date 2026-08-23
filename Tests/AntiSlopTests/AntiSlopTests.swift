@@ -236,6 +236,15 @@ final class AntiSlopTests: XCTestCase {
         assertClean("let x = dict.value(forKey2: \"k\")", NoKeyValueCodingRule.self)
     }
 
+    func testTypedSelectorDispatchIsClean() {
+        // Vision-style typed perform(_:) takes an array, not a selector.
+        assertClean("handler.perform([request])", NoKeyValueCodingRule.self)
+    }
+
+    func testSelectorPerformIsStillRejected() {
+        assertViolation("owner.perform(#selector(Foo.bar))", NoKeyValueCodingRule.self)
+    }
+
     func testSetValueWithoutKeyLabelIsClean() {
         // The where-clause must apply to setValue too, not only setNilValueForKey.
         assertClean("owner.setValue(1)", NoKeyValueCodingRule.self)

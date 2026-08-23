@@ -148,11 +148,18 @@ public final class NoSwallowedErrorsRule: SlopRule {
     }
 }
 
-/// Rejects conditions built from boolean literals — they carry no signal.
+/// Rejects conditions built entirely from boolean literals — they carry no
+/// signal.
+///
+/// Divergence note: binary comparisons like `flag == true` are NOT flagged.
+/// When the operand is an optional Bool, `optBool == true` is meaningful Swift
+/// ("non-nil and true"), and a syntax-level linter cannot see operand types —
+/// production use showed hundreds of false positives. The ternary form is
+/// always redundant regardless of types and remains rejected.
 public final class NoBoolLiteralComparisonsRule: SlopRule {
     override public class var id: String { "no-bool-literal-comparisons" }
     override public class var summary: String {
-        "Rejects `flag == true`, `flag != false`, and `cond ? true : false`; use the condition directly."
+        "Rejects `cond ? true : false`; a ternary between boolean literals is the condition spelled twice."
     }
 
     public required init(
@@ -161,27 +168,6 @@ public final class NoBoolLiteralComparisonsRule: SlopRule {
         converter: SourceLocationConverter
     ) {
         super.init(fileName: fileName, sourceText: sourceText, converter: converter)
-    }
-
-    public override func visitPost(_ node: InfixOperatorExprSyntax) {
-        guard let operatorNode = node.operator.as(BinaryOperatorExprSyntax.self),
-            operatorNode.operator.text == "==" || operatorNode.operator.text == "!=",
-            node.leftOperand.is(BooleanLiteralExprSyntax.self)
-                || node.rightOperand.is(BooleanLiteralExprSyntax.self)
-        else { return }
-        let bothAreLiterals = node.leftOperand.is(BooleanLiteralExprSyntax.self)
-            && node.rightOperand.is(BooleanLiteralExprSyntax.self)
-        let replacement =
-            bothAreLiterals
-            ? "the literal itself"
-            : operatorNode.operator.text == "=="
-                ? "the operand directly, negated with `!` if needed"
-                : "`!(…)` of the operand"
-        report(
-            operatorNode.operator,
-            message:
-                "Boolean literal comparison carries no information. Write \(replacement)."
-        )
     }
 
     public override func visitPost(_ node: TernaryExprSyntax) {
@@ -229,7 +215,8 @@ public final class NoHardcodedSecretsRule: SlopRule {
             guard let pattern = binding.pattern.as(IdentifierPatternSyntax.self),
                 containsSecretTerm(pattern.identifier.text),
                 let initializer = binding.initializer?.value,
-                let literal = plaintextStringLiteral(initializer)
+                let literal = plaintextStringLiteral(initializer),
+                !looksLikeEnvironmentVariableName(literal)
             else { continue }
             report(
                 initializer,
@@ -242,6 +229,14 @@ public final class NoHardcodedSecretsRule: SlopRule {
     private func containsSecretTerm(_ name: String) -> Bool {
         let lowered = name.lowercased()
         return Self.secretTerms.contains { lowered.contains($0) }
+    }
+
+    /// `"MERERUN_API_KEY"`-style literals are environment variable names, not
+    /// committed secrets. SCREAMING_CASE values are exempt.
+    private func looksLikeEnvironmentVariableName(_ value: String) -> Bool {
+        !value.isEmpty
+            && value == value.uppercased()
+            && value.allSatisfy { $0.isLetter || $0.isNumber || $0 == "_" }
     }
 
     /// Returns the literal's text when `expr` is a plain, non-empty,

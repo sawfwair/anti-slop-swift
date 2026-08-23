@@ -184,9 +184,10 @@ do {
 ### `no-bool-literal-comparisons`
 
 ```swift
-if flag == true {}
 let enabled = cond ? true : false
 ```
+
+Binary comparisons like `flag == true` are deliberately allowed: on an optional Bool they are meaningful, and operand types are invisible to a syntax-level linter.
 
 ### `no-hardcoded-secrets`
 
@@ -229,10 +230,10 @@ struct UserShape {
 ### `no-known-value-widening`
 
 ```swift
-let handlers: [String: Handler] = ["start": startHandler]
+let payload: Any = ["a": 1]
 ```
 
-This discards the known `start` key. Keep inference, or key the dictionary by an enum or struct.
+Annotated dictionaries with literal keys (`let headers: [String: String] = ["Content-Type": "..."]`) are idiomatic Swift and deliberately not flagged.
 
 ### `no-widen-then-assert`
 
@@ -263,7 +264,7 @@ let kind = String(describing: type(of: value))
 | `no-module-mocking` | ❌ no Vitest/Jest-style module mocking in Swift |
 | `no-object-parameters` | ✅ `no-any-parameters` |
 | `no-reflect-apply` | ❌ no dynamic apply in Swift |
-| `no-reflect-get` | ✅ `no-key-value-coding` |
+| `no-reflect-get` | ✅ `no-key-value-coding`; `perform` narrowed to `#selector(...)` arguments so typed `perform([requests])` APIs do not false-positive |
 | `no-runtime-typeof` | ◑ `no-runtime-type-sniffing`: string sniffing and `type(of:) == T.self` comparisons are rejected; plain `is`/`as?` checks are allowed because they are idiomatic error and protocol handling in Swift |
 | `no-shape-in-symbol-names` | ✅ direct port |
 | `no-unknown-parameters` | ✅ `no-any-parameters` (`any Error` exempt, mirroring the `cause` convention) |

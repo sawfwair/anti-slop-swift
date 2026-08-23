@@ -1,17 +1,17 @@
 import SwiftSyntax
 
-/// Port of upstream `no-known-value-widening`.
+/// Port of upstream `no-known-value-widening`'s evidence slice: rejects
+/// syntactically established values flowing into explicitly `Any`-shaped
+/// targets that discard what the compiler already knows:
 ///
-/// Rejects syntactically established values from flowing into explicitly
-/// broad targets that discard useful evidence:
+/// - `let payload: Any = ["a": 1]`
+/// - `let items: AnyObject = [1, 2, 3]`
 ///
-/// - `let payload: Any = ["a": 1]` — a literal widened to `Any`.
-/// - `let handlers: [String: Handler] = ["start": startHandler]` — a
-///   dictionary literal with known keys annotated as an open dictionary.
-///
-/// Keep inference, or use a named contract. Divergence from upstream: call
-/// expressions are not treated as known evidence (Swift cannot distinguish
-/// `Foo()` from `load()` without type checking).
+/// Divergence from upstream: upstream also flags known-key object literals
+/// annotated as open `Record`s. Swift's equivalent — `let headers:
+/// [String: String] = ["Content-Type": "..."]` — is idiomatic for small typed
+/// constants and is deliberately not flagged; production use confirmed the
+/// slice produced only noise.
 public final class NoKnownValueWideningRule: SlopRule {
     override public class var id: String { "no-known-value-widening" }
     override public class var summary: String {
@@ -41,34 +41,8 @@ public final class NoKnownValueWideningRule: SlopRule {
                     message:
                         "The explicit \(annotation.type.trimmedDescription) annotation on \(pattern.identifier.text) discards known type evidence. Keep inference, or use a named contract."
                 )
-                continue
-            }
-
-            if let widenedKeys = discardedKnownKeys(annotation: annotation, initializer: initializer) {
-                report(
-                    annotation.type,
-                    message:
-                        "The explicit \(annotation.type.trimmedDescription) annotation on \(pattern.identifier.text) discards \(widenedKeys) known key\(widenedKeys == 1 ? "" : "s"). Keep inference, or key the dictionary by an enum or struct."
-                )
             }
         }
-    }
-
-    /// Count of string-literal keys erased by an open-dictionary annotation,
-    /// or nil when the annotation is not a widening of known keys.
-    private func discardedKnownKeys(
-        annotation: TypeAnnotationSyntax,
-        initializer: ExprSyntax
-    ) -> Int? {
-        guard let dictionary = TypeSyntax(annotation.type).as(DictionaryTypeSyntax.self),
-            dictionary.key.as(IdentifierTypeSyntax.self)?.name.text == "String",
-            let literal = initializer.as(DictionaryExprSyntax.self),
-            case .elements(let elementList) = literal.content,
-            !elementList.isEmpty
-        else { return nil }
-
-        let keys = elementList.compactMap { $0.key.as(StringLiteralExprSyntax.self) }
-        return keys.count == elementList.count ? keys.count : nil
     }
 
     /// Mirrors upstream's `isKnownEvidenceExpression`: expressions whose shape

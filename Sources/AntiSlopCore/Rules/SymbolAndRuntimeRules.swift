@@ -86,7 +86,9 @@ public final class NoKeyValueCodingRule: SlopRule {
             // NSObject.setNilValueForKey(_:) takes a single unlabeled argument.
             break
         case "perform" where labels.isEmpty:
-            break
+            // Only selector dispatch counts; typed APIs like Vision's
+            // handler.perform([requests]) share the name but take arrays.
+            guard Self.isSelectorArgument(node.arguments.first?.expression) else { return }
         default:
             return
         }
@@ -96,6 +98,15 @@ public final class NoKeyValueCodingRule: SlopRule {
             message:
                 "Key-value coding and selector dispatch bypass the type system; a typo or rename compiles and crashes at runtime. Call the typed accessor, or parse untrusted input at the boundary."
         )
+    }
+    /// `#selector(...)` expansions are the signature of dynamic selector
+    /// dispatch; typed array arguments (Vision, XCTest) are not.
+    private static func isSelectorArgument(_ expression: ExprSyntax?) -> Bool {
+        guard let expression else { return false }
+        if let macro = expression.as(MacroExpansionExprSyntax.self) {
+            return macro.macroName.text == "selector"
+        }
+        return false
     }
 }
 
