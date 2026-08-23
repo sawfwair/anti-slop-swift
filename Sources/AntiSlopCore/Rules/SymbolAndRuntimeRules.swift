@@ -102,10 +102,15 @@ public final class NoKeyValueCodingRule: SlopRule {
 /// Rejects runtime type sniffing such as `String(describing: type(of: x))`
 /// used to branch on dynamic type. Model variants in the type system or decode
 /// at the boundary.
+/// Port of upstream `no-runtime-typeof`.
+///
+/// Rejects runtime type sniffing — `String(describing: type(of: x))` string
+/// contracts and `type(of: x) == Dog.self` dynamic type comparisons. Model
+/// variants in the type system or decode at the boundary.
 public final class NoRuntimeTypeSniffingRule: SlopRule {
     override public class var id: String { "no-runtime-type-sniffing" }
     override public class var summary: String {
-        "Rejects `String(describing: type(of:))` style runtime type sniffing."
+        "Rejects `String(describing: type(of:))` sniffing and `type(of:) == T.self` comparisons."
     }
 
     public required init(
@@ -114,6 +119,31 @@ public final class NoRuntimeTypeSniffingRule: SlopRule {
         converter: SourceLocationConverter
     ) {
         super.init(fileName: fileName, sourceText: sourceText, converter: converter)
+    }
+
+    public override func visitPost(_ node: InfixOperatorExprSyntax) {
+        let leftIsTypeOf = Self.isTypeOfCall(node.leftOperand)
+        let rightIsTypeOf = Self.isTypeOfCall(node.rightOperand)
+        guard leftIsTypeOf || rightIsTypeOf else { return }
+
+        // Both sides being `type(of:)` calls is still inspection narrowing;
+        // a single call must be compared against a metatype to count.
+        if leftIsTypeOf && rightIsTypeOf {
+            report(
+                node.operator,
+                message:
+                    "Comparing dynamic types narrows by inspection instead of contract. Model variants as an enum or protocol and switch on the value, not its runtime type."
+            )
+            return
+        }
+
+        let other = leftIsTypeOf ? node.rightOperand : node.leftOperand
+        guard Self.isMetatypeExpression(other) else { return }
+        report(
+            node.operator,
+            message:
+                "Comparing dynamic types narrows by inspection instead of contract. Model variants as an enum or protocol and switch on the value, not its runtime type."
+        )
     }
 
     public override func visitPost(_ node: FunctionCallExprSyntax) {
@@ -131,6 +161,25 @@ public final class NoRuntimeTypeSniffingRule: SlopRule {
                 message:
                     "Runtime type sniffing turns dynamic type into a string contract. Model variants as an enum or protocol, or decode the real shape at the boundary."
             )
+        }
+    }
+
+    private static func isTypeOfCall(_ expression: ExprSyntax) -> Bool {
+        guard let call = expression.as(FunctionCallExprSyntax.self),
+            let called = call.calledExpression.as(DeclReferenceExprSyntax.self),
+            called.baseName.text == "type"
+        else { return false }
+        return true
+    }
+
+    private static func isMetatypeExpression(_ expression: ExprSyntax) -> Bool {
+        switch Syntax(expression).as(SyntaxEnum.self) {
+        case .memberAccessExpr(let member):
+            return member.declName.baseName.text == "self"
+        case .metatypeType:
+            return true
+        default:
+            return false
         }
     }
 }

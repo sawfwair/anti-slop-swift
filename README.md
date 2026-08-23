@@ -59,6 +59,8 @@ swift run anti-slop Sources --disable=no-shape-in-symbol-names
 - `no-any-returns` — rejects function contracts that return `Any` or `AnyObject`. Port of upstream `no-unknown-returns`.
 - `no-any-typealiases` — rejects aliases that merely conceal `Any`: `typealias Payload = Any`. Port of upstream `no-unknown-type-aliases`.
 - `no-any-dictionary-value` — rejects dictionary value contracts based on `Any`/`AnyObject`, such as `[String: Any]`. Port of upstream `no-unsafe-dictionary-type`.
+- `no-known-value-widening` — rejects explicit broad annotations that discard known evidence: `let payload: Any = ["a": 1]`, or `let handlers: [String: Handler] = ["start": h]` erasing known keys. Direct port.
+- `no-widen-then-assert` — rejects bindings that widen a known value to `Any` and later cast it back (`let stored: Any = load(); let u = stored as! User`). Port of upstream `no-widen-then-assert`.
 - `no-shape-in-symbol-names` — rejects the case-insensitive substring "shape" in declaration names. Direct port.
 - `no-key-value-coding` — rejects `value(forKey:)`, `value(forKeyPath:)`, `setValue(_:forKey:)`, and `perform(_:)` in favor of typed property access or boundary parsing. Port of upstream `no-reflect-get`.
 - `no-runtime-type-sniffing` — rejects `String(describing: type(of: x))` branching on dynamic type; model variants in the type system or decode at the boundary. Port of upstream `no-runtime-typeof`.
@@ -180,6 +182,21 @@ struct UserShape {
 }
 ```
 
+### `no-known-value-widening`
+
+```swift
+let handlers: [String: Handler] = ["start": startHandler]
+```
+
+This discards the known `start` key. Keep inference, or key the dictionary by an enum or struct.
+
+### `no-widen-then-assert`
+
+```swift
+let stored: Any = loadUser()
+let user = stored as! User
+```
+
 ### `no-key-value-coding`
 
 ```swift
@@ -191,6 +208,29 @@ let name = owner.value(forKey: "name")
 ```swift
 let kind = String(describing: type(of: value))
 ```
+
+## Parity with upstream
+
+| upstream rule | status here |
+| --- | --- |
+| `no-chained-type-assertions` | ✅ `no-chained-type-casts` |
+| `no-conditional-empty-object-spread` | ❌ no Swift spread syntax |
+| `no-known-value-widening` | ✅ direct port (call expressions not treated as evidence) |
+| `no-module-mocking` | ❌ no Vitest/Jest-style module mocking in Swift |
+| `no-object-parameters` | ✅ `no-any-parameters` |
+| `no-reflect-apply` | ❌ no dynamic apply in Swift |
+| `no-reflect-get` | ✅ `no-key-value-coding` |
+| `no-runtime-typeof` | ◑ `no-runtime-type-sniffing`: string sniffing and `type(of:) == T.self` comparisons are rejected; plain `is`/`as?` checks are allowed because they are idiomatic error and protocol handling in Swift |
+| `no-shape-in-symbol-names` | ✅ direct port |
+| `no-unknown-parameters` | ✅ `no-any-parameters` (`any Error` exempt, mirroring the `cause` convention) |
+| `no-unknown-returns` | ✅ `no-any-returns` |
+| `no-unknown-type-aliases` | ✅ `no-any-typealiases` |
+| `no-unsafe-dictionary-type` | ◑ `no-any-dictionary-value`: checks `Any`/`AnyObject` values directly; does not resolve aliases like upstream's type environment |
+| `no-widen-then-assert` | ✅ ported; source-order scoped instead of function-boundary scoped |
+| `require-safety-comment-for-type-assertion` | ✅ `require-safety-comment-for-forced-cast` |
+| Effect group | ❌ no Effect ecosystem; Swift dependency seams differ |
+
+Everything marked ✅ is a semantic port read from upstream's implementation, not just its README. Everything else is either impossible in Swift or deliberately narrower, as noted.
 
 ## Divergence from upstream
 

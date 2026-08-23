@@ -114,6 +114,8 @@ extension SlopRule {
             NoAnyReturnsRule.self,
             NoAnyTypeAliasesRule.self,
             NoAnyDictionaryValueRule.self,
+            NoKnownValueWideningRule.self,
+            NoWidenThenAssertRule.self,
             NoSwallowedErrorsRule.self,
             NoBoolLiteralComparisonsRule.self,
             NoShapeInSymbolNamesRule.self,
