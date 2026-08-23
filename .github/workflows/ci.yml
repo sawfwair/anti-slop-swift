@@ -38,3 +38,17 @@ jobs:
         with:
           node-version: 24
       - run: node scripts/sync-skill-assets.mjs --check
+
+  # The vendored copy must stand alone: valid manifest, building, tests green.
+  vendored-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: "6.0"
+      - name: Build and test the bundled skill assets
+        run: |
+          cd skills/install-anti-slop-swift/assets/anti-slop-swift
+          swift build
+          swift test

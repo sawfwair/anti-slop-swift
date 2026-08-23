@@ -11,10 +11,13 @@ let usage = """
     anti-slop — opinionated rules that reject low-evidence Swift patterns.
 
     USAGE:
-      anti-slop [PATH ...] [--disable=RULE,RULE]
+      anti-slop [PATH ...] [--disable=RULE,RULE] [--config=FILE]
 
     OPTIONS:
-      --disable=RULES  Comma-separated rule ids to skip.
+      --disable=RULES  Comma-separated rule ids to skip (additive with config).
+      --config=FILE    Explicit config file; defaults to auto-discovered
+                       .anti-slop.json in the current directory or an ancestor.
+                       Format: { "disabled": ["rule-id", ...] }
       --list-rules     Print rule ids and summaries, then exit.
       -h, --help       Show this help.
 
@@ -37,6 +40,7 @@ func printRuleList() {
 struct Options {
     var paths: [String] = []
     var disabled: Set<String> = []
+    var configPath: String?
 }
 
 func parseArguments(_ arguments: ArraySlice<String>) -> Options? {
@@ -45,6 +49,8 @@ func parseArguments(_ arguments: ArraySlice<String>) -> Options? {
         if argument.hasPrefix("--disable=") {
             let value = argument.dropFirst("--disable=".count)
             options.disabled.formUnion(value.split(separator: ",").map(String.init))
+        } else if argument.hasPrefix("--config=") {
+            options.configPath = String(argument.dropFirst("--config=".count))
         } else if argument == "--list-rules" || argument == "-h" || argument == "--help" {
             return nil // handled by caller before parsing matters
         } else if argument.hasPrefix("-") && argument != "-" {
@@ -96,12 +102,30 @@ if arguments.contains("--help") || arguments.contains("-h") {
     exit(0)
 }
 
-guard let options = parseArguments(arguments) else {
+guard var options = parseArguments(arguments) else {
     print(usage)
     exit(0)
 }
 
 let searchPaths = options.paths.isEmpty ? ["."] : options.paths
+
+// Persistent config (.anti-slop.json, discovered walking up from the working
+// directory) merges with --disable flags; CLI flags are additive.
+do {
+    options.disabled.formUnion(
+        try AntiSlopConfig.resolve(
+            explicitConfigPath: options.configPath,
+            startingAt: FileManager.default.currentDirectoryPath
+        )
+    )
+} catch let error as ConfigError {
+    FileHandle.standardError.write(Data("[anti-slop] \(error.message)\n".utf8))
+    exit(2)
+} catch {
+    FileHandle.standardError.write(Data("[anti-slop] config error: \(error)\n".utf8))
+    exit(2)
+}
+
 let files = searchPaths.flatMap(swiftFiles)
 
 let enabledRules = SlopRule.allRules.filter { !options.disabled.contains($0.id) }

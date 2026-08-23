@@ -70,6 +70,23 @@ swift run anti-slop Sources Tests --disable=no-shape-in-symbol-names
 
 This is exactly what this repository's CI does.
 
+### Disabling rules persistently
+
+Commit a `.anti-slop.json` at the repository root (or any ancestor of where you run the linter) instead of repeating flags:
+
+```json
+{
+  "disabled": ["no-shape-in-symbol-names", "no-key-value-coding"]
+}
+```
+
+The file is discovered by walking up from the working directory. CLI `--disable` flags are additive on top of it; `--config=FILE` points somewhere explicit.
+
+### Rule selection guidance
+
+- `no-shape-in-symbol-names` is upstream parity, but "shape" is core domain vocabulary in tensor/matrix/geometry code. If your domain owns the word, disable it in your config — that is what vendoring is for.
+- Running alongside SwiftLint works fine: this tool is AST-based and complements SwiftLint's style rules. Expect overlap only with force-cast/force-try style rules (`swiftlint_rules: force_cast`, `force_try`) — pick one owner per rule to avoid double-reporting.
+
 ## Rules
 
 ### Generic rules
