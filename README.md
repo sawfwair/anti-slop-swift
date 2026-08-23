@@ -1,5 +1,7 @@
 # anti-slop-swift
 
+[![skills.sh](https://skills.sh/badge/sawfwair/anti-slop-swift)](https://skills.sh/sawfwair/anti-slop-swift)
+
 Opinionated SwiftSyntax rules that reject low-evidence and low-signal Swift patterns. A Swift port of [dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop), with additional Swift-specific rules.
 
 19 rules, all AST-level (no regex), built on [swift-syntax](https://github.com/swiftlang/swift-syntax). Requires a Swift 6.0+ toolchain.
