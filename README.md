@@ -274,6 +274,10 @@ node scripts/sync-skill-assets.mjs --check
 
 `Sources/AntiSlopCore/` is canonical. After changing production source, run `node scripts/sync-skill-assets.mjs` so the install skill's bundled assets stay identical; CI enforces this. See `AGENTS.md` and `CONTRIBUTING.md` for contribution guidance.
 
+## Acknowledgments
+
+anti-slop-swift is a port of [dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop) by [Dillon Mulroy](https://github.com/dmmulroy). The philosophy, the rule set, the vendored-not-dependency distribution model, and the `// SAFETY:` escape-hatch convention all originate there; the generic rules are semantic ports of upstream's Oxlint implementations, and the parity table above maps every rule to its origin. The Swift-specific rules (`no-force-try`, `no-force-unwrap`, `no-fatal-error`, `no-implicitly-unwrapped-optionals`, `no-as-any-cast`, `no-swallowed-errors`, `no-bool-literal-comparisons`, `no-hardcoded-secrets`) extend the same ideas to patterns that only exist in Swift. Thank you, Dillon.
+
 ## License
 
 MIT

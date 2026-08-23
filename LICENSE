@@ -1,8 +1,9 @@
 MIT License
 
 Copyright (c) 2026 anti-slop-swift contributors
+Copyright (c) 2026 Dillon Mulroy (dmmulroy/anti-slop, upstream implementation)
 
-Inspired by dmmulroy/anti-slop (MIT).
+Derived from dmmulroy/anti-slop (https://github.com/dmmulroy/anti-slop), MIT licensed.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

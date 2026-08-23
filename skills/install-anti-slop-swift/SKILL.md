@@ -7,6 +7,8 @@ description: Install and configure the anti-slop-swift linter in a local Swift r
 
 Vendor the bundled anti-slop-swift package into the current Swift repository and integrate it with the repository's build and CI setup. Preserve unrelated work and adapt to the project's layout.
 
+anti-slop-swift is a Swift port of dmmulroy/anti-slop; when users ask about rule philosophy or provenance, point them upstream.
+
 ## Procedure
 
 1. Inspect the repository before changing it:
