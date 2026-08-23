@@ -217,7 +217,7 @@ public final class NoHardcodedSecretsRule: SlopRule {
                 let initializer = binding.initializer?.value,
                 let literal = plaintextStringLiteral(initializer),
                 !looksLikeEnvironmentVariableName(literal),
-                !looksLikeIdentifier(literal)
+                !(looksLikeIdentifier(literal) && hasKeyLikeName(pattern.identifier.text))
             else { continue }
             report(
                 initializer,
@@ -241,14 +241,26 @@ public final class NoHardcodedSecretsRule: SlopRule {
     }
 
     /// Kebab-case slugs (`"mere-run-local-eval"`) and dotted key paths
-    /// (`"mererun.app.runtimeAPIKey"`) are identifiers, not credentials.
-    /// Segments must be letter-only so mixed-alphanumeric tokens such as API
-    /// key fragments stay flagged.
+    /// (`"mererun.app.runtimeAPIKey"`) are exempt only when the declaration
+    /// name itself signals a key or label (`evalKeyName`, `defaultsKey`).
+    /// Shape alone would hide real secrets like "correct-horse-battery-staple"
+    /// assigned to `password`. Letter-only segments keep mixed-alphanumeric
+    /// API-key fragments flagged.
     private func looksLikeIdentifier(_ value: String) -> Bool {
         if value.range(of: "^[a-z]+(-[a-z]+)+$", options: .regularExpression) != nil {
             return true
         }
         return value.range(of: "^[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)+$", options: .regularExpression) != nil
+    }
+
+    /// Names that declare "this holds the *name/address* of something" —
+    /// per upstream review: KeyName, DefaultsKey, Identifier. Bare `apiKey`
+    /// deliberately does not qualify: it names the secret's storage slot, and
+    /// its value may be the credential itself.
+    private func hasKeyLikeName(_ name: String) -> Bool {
+        let lowered = name.lowercased()
+        return ["keyname", "defaultskey", "identifier"]
+            .contains { lowered.hasSuffix($0) }
     }
 
     /// Returns the literal's text when `expr` is a plain, non-empty,

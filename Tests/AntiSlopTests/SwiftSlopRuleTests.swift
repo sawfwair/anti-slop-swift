@@ -221,13 +221,25 @@ final class SwiftSlopRuleTests: XCTestCase {
         )
     }
 
-    func testIdentifierShapedLiteralsAreClean() {
+    func testIdentifierShapedLiteralsWithKeyLikeNamesAreClean() {
         assertClean(
             "let evalKeyName = \"mere-run-local-eval\"",
             NoHardcodedSecretsRule.self
         )
         assertClean(
             "let defaultsKey = \"mererun.app.runtimeAPIKey\"",
+            NoHardcodedSecretsRule.self
+        )
+    }
+
+    func testIdentifierShapedLiteralsWithoutKeyLikeNamesStayFlagged() {
+        // Shape alone is not enough; declaration intent is required.
+        assertViolation(
+            "let password = \"correct-horse-battery-staple\"",
+            NoHardcodedSecretsRule.self
+        )
+        assertViolation(
+            "let apiKey = \"foo.bar\"",
             NoHardcodedSecretsRule.self
         )
     }
