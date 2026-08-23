@@ -47,7 +47,7 @@ anti-slop-swift is a Swift port of dmmulroy/anti-slop; when users ask about rule
    - Report each rule that fired and the count.
    - Treat rules as a menu, not a mandate: if a rule conflicts with the repository's domain language or existing lint policy (for example `no-shape-in-symbol-names` in tensor/geometry code where "shape" is core vocabulary, or overlap with existing SwiftLint force-cast rules), propose disabling it via a committed `.anti-slop.json` config file rather than editing rule semantics.
    - Fix findings only when the user asked for cleanup. Do not suppress rules, weaken severity, delete safety-relevant code, or add `// SAFETY:` comments mechanically just to make lint pass — a SAFETY comment must state an invariant the author actually checked.
-   - Rules the team disagrees with are disabled per-invocation with `--disable=rule-id,rule-id`, never by editing rule semantics silently.
+   - Rules the team disagrees with are disabled through the committed `.anti-slop.json` config file (the primary mechanism; see the repository README's "Disabling rules" section), never by editing rule semantics silently. CLI `--disable` flags are for one-off experiments only.
 
 6. Review the final diff and clearly report:
    - copied path,

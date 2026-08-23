@@ -226,6 +226,11 @@ final class AntiSlopTests: XCTestCase {
         assertViolation("owner.perform(#selector(Foo.bar))", NoKeyValueCodingRule.self)
     }
 
+    func testSetNilValueForKeyWithUnlabeledArgumentIsRejected() {
+        // NSObject.setNilValueForKey(_:) has no argument label.
+        assertViolation("owner.setNilValueForKey(\"count\")", NoKeyValueCodingRule.self)
+    }
+
     func testTypedPropertyAccessIsClean() {
         assertClean("let x = user.name", NoKeyValueCodingRule.self)
         assertClean("let x = dict.value(forKey2: \"k\")", NoKeyValueCodingRule.self)

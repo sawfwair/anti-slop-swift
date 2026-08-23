@@ -82,7 +82,8 @@ public final class NoKeyValueCodingRule: SlopRule {
             break
         case "setValue" where labels.contains("forKey") || labels.contains("forKeyPath"):
             break
-        case "setNilValueForKey" where labels.contains("forKey") || labels.contains("forKeyPath"):
+        case "setNilValueForKey" where labels.isEmpty:
+            // NSObject.setNilValueForKey(_:) takes a single unlabeled argument.
             break
         case "perform" where labels.isEmpty:
             break
