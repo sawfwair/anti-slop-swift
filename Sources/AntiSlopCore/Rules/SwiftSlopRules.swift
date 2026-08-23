@@ -182,7 +182,12 @@ public final class NoBoolLiteralComparisonsRule: SlopRule {
     }
 }
 
-/// Rejects secret-looking constants assigned string literals.
+/// Rejects secret-looking constants assigned string literals; read them from
+/// the environment or a secrets store.
+///
+/// Escape hatch: genuinely intentional local credentials (`"admin"` defaults,
+/// evaluation keys) may keep the literal with a preceding `// SAFETY:` comment
+/// stating why it must exist in source.
 public final class NoHardcodedSecretsRule: SlopRule {
     override public class var id: String { "no-hardcoded-secrets" }
     override public class var summary: String {

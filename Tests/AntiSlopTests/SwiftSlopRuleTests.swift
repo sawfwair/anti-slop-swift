@@ -259,6 +259,23 @@ final class SwiftSlopRuleTests: XCTestCase {
         )
     }
 
+    func testSafetyCommentSuppressesSecretFinding() {
+        assertClean(
+            """
+            // SAFETY: intentional local default; production reads from env.
+            let adminPassword = \"admin\"
+            """,
+            NoHardcodedSecretsRule.self
+        )
+        assertClean(
+            """
+            // SAFETY: well-known local evaluation credential, not a secret.
+            let evalCredential = \"mere-run-local-eval\"
+            """,
+            NoHardcodedSecretsRule.self
+        )
+    }
+
     func testEmptyAndInterpolatedStringsAreClean() {
         assertClean("var apiKey = \"\"", NoHardcodedSecretsRule.self)
         assertClean(
