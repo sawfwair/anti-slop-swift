@@ -54,7 +54,7 @@ public final class NoImplicitlyUnwrappedOptionalsRule: SlopRule {
         if isExempt(node.attributes) { return }
         for binding in node.bindings {
             guard let annotation = binding.typeAnnotation,
-                let iuo = implicitUnwrapped(in: TypeSyntax(annotation.type))
+                implicitUnwrapped(in: TypeSyntax(annotation.type)) != nil
             else { continue }
             report(
                 annotation.type,

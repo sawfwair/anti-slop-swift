@@ -80,8 +80,9 @@ public final class NoKeyValueCodingRule: SlopRule {
         switch name {
         case "value" where labels == ["forKey"] || labels == ["forKeyPath"]:
             break
-        case "setValue", "setNilValueForKey"
-            where labels.contains("forKey") || labels.contains("forKeyPath"):
+        case "setValue" where labels.contains("forKey") || labels.contains("forKeyPath"):
+            break
+        case "setNilValueForKey" where labels.contains("forKey") || labels.contains("forKeyPath"):
             break
         case "perform" where labels.isEmpty:
             break

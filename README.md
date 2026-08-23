@@ -48,13 +48,13 @@ let violations = AntiSlop.lint(
 )
 ```
 
-Skip rules you disagree with:
+Skip rules for a one-off run:
 
 ```bash
 swift run anti-slop --disable=no-force-unwrap,no-key-value-coding Sources
 ```
 
-List everything the package ships with:
+For standing decisions, prefer a committed `.anti-slop.json` (see [Disabling rules](#disabling-rules)). List everything the package ships with:
 
 ```bash
 swift run anti-slop --list-rules
@@ -70,9 +70,9 @@ swift run anti-slop Sources Tests --disable=no-shape-in-symbol-names
 
 This is exactly what this repository's CI does.
 
-### Disabling rules persistently
+### Disabling rules
 
-Commit a `.anti-slop.json` at the repository root (or any ancestor of where you run the linter) instead of repeating flags:
+The primary mechanism is a committed `.anti-slop.json` at the repository root — discovered by walking up from wherever you run the linter:
 
 ```json
 {
@@ -80,7 +80,7 @@ Commit a `.anti-slop.json` at the repository root (or any ancestor of where you 
 }
 ```
 
-The file is discovered by walking up from the working directory. CLI `--disable` flags are additive on top of it; `--config=FILE` points somewhere explicit.
+Use it for standing team decisions: domain vocabulary conflicts (`shape` in tensor/geometry code), overlaps with existing SwiftLint policy, or rules the team has consciously rejected. CLI `--disable=RULE,RULE` flags are additive on top of the config for one-off experiments; `--config=FILE` points at an explicit path when needed.
 
 ### Rule selection guidance
 

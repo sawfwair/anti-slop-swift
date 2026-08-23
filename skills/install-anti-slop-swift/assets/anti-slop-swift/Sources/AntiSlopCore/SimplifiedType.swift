@@ -23,7 +23,10 @@ enum SimplifiedType: Equatable {
             return .other
         case .memberType(let member):
             // A qualified spelling like `Foundation.Any` is still a leak.
-            guard member.baseType == nil else { return .other }
+            let base = member.baseType.as(IdentifierTypeSyntax.self)?.name.text
+            guard base == nil || base == "Foundation" || base == "Swift" else {
+                return .other
+            }
             if let any = anyName(named: member.name.text) {
                 return .anyLike(any)
             }
@@ -39,7 +42,7 @@ enum SimplifiedType: Equatable {
             }
             return SimplifiedType.of(only.type)
         case .someOrAnyType(let someOrAny):
-            let inner = SimplifiedType.of(someOrAny.baseType)
+            let inner = SimplifiedType.of(someOrAny.constraint)
             // `any X` keeps the underlying classification; `some X` is opaque
             // and never a leak.
             return someOrAny.someOrAnySpecifier.tokenKind == .keyword(.any) ? inner : .other

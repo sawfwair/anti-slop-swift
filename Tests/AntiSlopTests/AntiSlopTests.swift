@@ -231,6 +231,12 @@ final class AntiSlopTests: XCTestCase {
         assertClean("let x = dict.value(forKey2: \"k\")", NoKeyValueCodingRule.self)
     }
 
+    func testSetValueWithoutKeyLabelIsClean() {
+        // The where-clause must apply to setValue too, not only setNilValueForKey.
+        assertClean("owner.setValue(1)", NoKeyValueCodingRule.self)
+        assertClean("owner.setValue(1, forKeyPath2: \"k\")", NoKeyValueCodingRule.self)
+    }
+
     // MARK: no-runtime-type-sniffing
 
     func testStringDescribingTypeOfIsRejected() {

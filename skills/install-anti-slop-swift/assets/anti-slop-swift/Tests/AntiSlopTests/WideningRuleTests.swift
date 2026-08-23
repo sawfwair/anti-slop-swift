@@ -84,6 +84,15 @@ final class WideningRuleTests: XCTestCase {
         assertClean("var selection: Any? = nil", NoKnownValueWideningRule.self)
     }
 
+    func testQualifiedFoundationAnyIsRejected() {
+        assertViolation("let payload: Foundation.Any = [1, 2]", NoKnownValueWideningRule.self)
+        assertViolation("func load() -> Foundation.Any { 1 }", NoAnyReturnsRule.self)
+    }
+
+    func testQualifiedOtherMemberTypeIsClean() {
+        assertClean("struct Foo { struct Any {} }; let v: Foo.Any = Foo.Any()", NoKnownValueWideningRule.self)
+    }
+
     // MARK: no-widen-then-assert
 
     func testWidenThenForceCastIsRejected() {
