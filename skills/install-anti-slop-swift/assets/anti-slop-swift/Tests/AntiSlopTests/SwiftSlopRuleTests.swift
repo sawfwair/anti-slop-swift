@@ -221,6 +221,32 @@ final class SwiftSlopRuleTests: XCTestCase {
         )
     }
 
+    func testIdentifierShapedLiteralsAreClean() {
+        assertClean(
+            "let evalKeyName = \"mere-run-local-eval\"",
+            NoHardcodedSecretsRule.self
+        )
+        assertClean(
+            "let defaultsKey = \"mererun.app.runtimeAPIKey\"",
+            NoHardcodedSecretsRule.self
+        )
+    }
+
+    func testMixedAlphanumericValuesStayFlagged() {
+        // Letter-only segment exemption must not swallow key-like tokens.
+        assertViolation(
+            "let apiKey = \"sk-live-abc123\"",
+            NoHardcodedSecretsRule.self
+        )
+    }
+
+    func testShortGenericPasswordsStayFlagged() {
+        assertViolation(
+            "let adminPassword = \"admin\"",
+            NoHardcodedSecretsRule.self
+        )
+    }
+
     func testEmptyAndInterpolatedStringsAreClean() {
         assertClean("var apiKey = \"\"", NoHardcodedSecretsRule.self)
         assertClean(

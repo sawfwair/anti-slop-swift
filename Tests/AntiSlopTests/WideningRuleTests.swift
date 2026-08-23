@@ -190,6 +190,17 @@ final class WideningRuleTests: XCTestCase {
         )
     }
 
+    func testDynamicTypeEqualityWithSafetyCommentIsClean() {
+        assertClean(
+            """
+            class Dog {}
+            // SAFETY: exact-class check guards a decode fast path.
+            if type(of: a) == Dog.self {}
+            """,
+            NoRuntimeTypeSniffingRule.self
+        )
+    }
+
     func testDynamicTypeComparedToDynamicTypeIsRejected() {
         assertViolation(
             "if type(of: a) == type(of: b) {}",

@@ -112,14 +112,13 @@ public final class NoKeyValueCodingRule: SlopRule {
 
 /// Port of upstream `no-runtime-typeof`.
 ///
-/// Rejects runtime type sniffing such as `String(describing: type(of: x))`
-/// used to branch on dynamic type. Model variants in the type system or decode
-/// at the boundary.
-/// Port of upstream `no-runtime-typeof`.
-///
 /// Rejects runtime type sniffing — `String(describing: type(of: x))` string
 /// contracts and `type(of: x) == Dog.self` dynamic type comparisons. Model
 /// variants in the type system or decode at the boundary.
+///
+/// Escape hatch: exact-class checks are sometimes deliberate (performance
+/// fast paths, diagnostics). A preceding `// SAFETY:` comment documents that
+/// choice inline instead of disabling the rule globally.
 public final class NoRuntimeTypeSniffingRule: SlopRule {
     override public class var id: String { "no-runtime-type-sniffing" }
     override public class var summary: String {
@@ -142,16 +141,18 @@ public final class NoRuntimeTypeSniffingRule: SlopRule {
         // Both sides being `type(of:)` calls is still inspection narrowing;
         // a single call must be compared against a metatype to count.
         if leftIsTypeOf && rightIsTypeOf {
+            if hasPrecedingSafetyComment(for: node.operator) { return }
             report(
                 node.operator,
                 message:
-                    "Comparing dynamic types narrows by inspection instead of contract. Model variants as an enum or protocol and switch on the value, not its runtime type."
+                    "Comparing dynamic types narrows by inspection instead of contract. Model variants as an enum or protocol and switch on the value, not its runtime type — or add a // SAFETY: comment documenting a deliberate check such as an exact-class fast path."
             )
             return
         }
 
         let other = leftIsTypeOf ? node.rightOperand : node.leftOperand
         guard Self.isMetatypeExpression(other) else { return }
+        if hasPrecedingSafetyComment(for: node.operator) { return }
         report(
             node.operator,
             message:
@@ -169,6 +170,7 @@ public final class NoRuntimeTypeSniffingRule: SlopRule {
                 let innerCalled = inner.calledExpression.as(DeclReferenceExprSyntax.self),
                 innerCalled.baseName.text == "type"
             else { continue }
+            if hasPrecedingSafetyComment(for: argument.expression) { continue }
             report(
                 argument.expression,
                 message:

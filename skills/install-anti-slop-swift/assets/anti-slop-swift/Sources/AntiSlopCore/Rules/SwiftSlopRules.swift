@@ -216,7 +216,8 @@ public final class NoHardcodedSecretsRule: SlopRule {
                 containsSecretTerm(pattern.identifier.text),
                 let initializer = binding.initializer?.value,
                 let literal = plaintextStringLiteral(initializer),
-                !looksLikeEnvironmentVariableName(literal)
+                !looksLikeEnvironmentVariableName(literal),
+                !looksLikeIdentifier(literal)
             else { continue }
             report(
                 initializer,
@@ -237,6 +238,17 @@ public final class NoHardcodedSecretsRule: SlopRule {
         !value.isEmpty
             && value == value.uppercased()
             && value.allSatisfy { $0.isLetter || $0.isNumber || $0 == "_" }
+    }
+
+    /// Kebab-case slugs (`"mere-run-local-eval"`) and dotted key paths
+    /// (`"mererun.app.runtimeAPIKey"`) are identifiers, not credentials.
+    /// Segments must be letter-only so mixed-alphanumeric tokens such as API
+    /// key fragments stay flagged.
+    private func looksLikeIdentifier(_ value: String) -> Bool {
+        if value.range(of: "^[a-z]+(-[a-z]+)+$", options: .regularExpression) != nil {
+            return true
+        }
+        return value.range(of: "^[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)+$", options: .regularExpression) != nil
     }
 
     /// Returns the literal's text when `expr` is a plain, non-empty,
