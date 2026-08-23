@@ -121,7 +121,7 @@ for file in files {
 }
 
 totalViolations.sort { lhs, rhs in
-    (lhs.line, lhs.column) < (rhs.line, rhs.column)
+    (lhs.fileName, lhs.line, lhs.column) < (rhs.fileName, rhs.line, rhs.column)
 }
 
 for violation in totalViolations {

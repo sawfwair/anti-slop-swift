@@ -67,7 +67,7 @@ public final class NoKnownValueWideningRule: SlopRule {
             !elementList.isEmpty
         else { return nil }
 
-        let keys = elementList.compactMap { $0.keyExpression.as(StringLiteralExprSyntax.self) }
+        let keys = elementList.compactMap { $0.key.as(StringLiteralExprSyntax.self) }
         return keys.count == elementList.count ? keys.count : nil
     }
 
@@ -106,6 +106,10 @@ public final class NoWidenThenAssertRule: SlopRule {
     }
 
     private var widenedBindings: [String: Int] = [:]
+    /// Every identifier declaration (variables and function parameters) with
+    /// its position, used to detect shadowing between a widened binding and a
+    /// later cast.
+    private var identifierDeclarations: [(name: String, offset: Int)] = []
 
     public required init(
         fileName: String,
@@ -137,6 +141,27 @@ public final class NoWidenThenAssertRule: SlopRule {
             widenedBindings[pattern.identifier.text] =
                 node.positionAfterSkippingLeadingTrivia.utf8Offset
         }
+        recordIdentifierDeclarations(in: node)
+    }
+
+    /// Parameters must be recorded pre-order: post-order fires after the
+    /// body's casts have already been visited.
+    public override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        let offset = node.positionAfterSkippingLeadingTrivia.utf8Offset
+        for parameter in node.signature.parameterClause.parameters {
+            // `first second: Type` binds `second`; bare `first: Type` binds `first`.
+            let name = parameter.secondName?.text ?? parameter.firstName.text
+            identifierDeclarations.append((name, offset))
+        }
+        return .visitChildren
+    }
+
+    private func recordIdentifierDeclarations(in node: VariableDeclSyntax) {
+        let offset = node.positionAfterSkippingLeadingTrivia.utf8Offset
+        for binding in node.bindings {
+            guard let pattern = binding.pattern.as(IdentifierPatternSyntax.self) else { continue }
+            identifierDeclarations.append((pattern.identifier.text, offset))
+        }
     }
 
     public override func visitPost(_ node: AsExprSyntax) {
@@ -146,6 +171,16 @@ public final class NoWidenThenAssertRule: SlopRule {
             let declarationOffset = widenedBindings[operand]
         else { return }
         guard node.positionAfterSkippingLeadingTrivia.utf8Offset > declarationOffset else { return }
+
+        // A same-named declaration between the widened binding and this cast
+        // means the operand refers to something else; do not fire.
+        let castOffset = node.positionAfterSkippingLeadingTrivia.utf8Offset
+        let isShadowed = identifierDeclarations.contains { declaration in
+            declaration.name == operand
+                && declaration.offset > declarationOffset
+                && declaration.offset < castOffset
+        }
+        guard !isShadowed else { return }
 
         report(
             node.asKeyword,

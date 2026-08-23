@@ -145,6 +145,20 @@ final class WideningRuleTests: XCTestCase {
         )
     }
 
+    func testShadowedNameDoesNotFire() {
+        assertClean(
+            """
+            struct User {}
+            func load() -> Any { 1 }
+            let stored: Any = load()
+            func inner(stored: User) {
+                let user = stored as! User
+            }
+            """,
+            NoWidenThenAssertRule.self
+        )
+    }
+
     func testCastBeforeDeclarationDoesNotFire() {
         assertClean(
             """

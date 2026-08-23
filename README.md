@@ -1,11 +1,20 @@
 # anti-slop-swift
 
-Opinionated SwiftSyntax rules that reject low-evidence and low-signal Swift patterns. A Swift port of [dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop).
+Opinionated SwiftSyntax rules that reject low-evidence and low-signal Swift patterns. A Swift port of [dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop), with additional Swift-specific rules.
+
+19 rules, all AST-level (no regex), built on [swift-syntax](https://github.com/swiftlang/swift-syntax). Requires a Swift 6.0+ toolchain.
+
+```console
+$ anti-slop Sources
+Sources/Payments/RefundService.swift:42:20: error: [no-force-unwrap] Force unwrap crashes on the first unexpected nil. Add a // SAFETY: comment stating why the optional is known non-nil, or unwrap with `guard let`.
+Sources/Payments/RefundService.swift:58:9: error: [no-swallowed-errors] Empty catch block swallows the error entirely; failures become invisible. Bind the error, log it, recover deliberately, or rethrow.
+
+[anti-slop] 2 violations across 14 files (19 rules).
+```
 
 This project is meant to be vendored, not treated as a fixed dependency. Copy the rules into your repository, read them, and change them to match your team's standards. After that, the vendored files are yours to maintain and make your own.
 
 ## Install
-
 Copy the package into your repository, for example at `tools/anti-slop-swift/`, then run:
 
 ```bash
@@ -37,11 +46,15 @@ List everything the package ships with:
 swift run anti-slop --list-rules
 ```
 
-When linting a repository that vendors this tool, ignore the vendored copy itself — the same way upstream ignores `tools/oxlint/anti-slop/**`:
+### Linting a repo that vendors this tool
+
+Exclude the vendored copy from its own lint run by scoping the paths you pass (lint `Sources`, not `tools/`). If you also lint this package's tests — where rule names like `NoShapeInSymbolNamesRule` legitimately appear — disable the affected rule for that invocation:
 
 ```bash
-swift run anti-slop Sources --disable=no-shape-in-symbol-names
+swift run anti-slop Sources Tests --disable=no-shape-in-symbol-names
 ```
+
+This is exactly what this repository's CI does.
 
 ## Rules
 
