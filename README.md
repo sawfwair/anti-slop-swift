@@ -276,7 +276,9 @@ node scripts/sync-skill-assets.mjs --check
 
 ## Acknowledgments
 
-anti-slop-swift is a port of [dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop) by [Dillon Mulroy](https://github.com/dmmulroy). The philosophy, the rule set, the vendored-not-dependency distribution model, and the `// SAFETY:` escape-hatch convention all originate there; the generic rules are semantic ports of upstream's Oxlint implementations, and the parity table above maps every rule to its origin. The Swift-specific rules (`no-force-try`, `no-force-unwrap`, `no-fatal-error`, `no-implicitly-unwrapped-optionals`, `no-as-any-cast`, `no-swallowed-errors`, `no-bool-literal-comparisons`, `no-hardcoded-secrets`) extend the same ideas to patterns that only exist in Swift. Thank you, Dillon.
+anti-slop-swift is a port of [dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop) by [Dillon Mulroy](https://github.com/dmmulroy). The philosophy, the rule set, the vendored-not-dependency distribution model, and the `// SAFETY:` escape-hatch convention all originate there; the generic rules are semantic ports of upstream's Oxlint implementations, and the parity table above maps every rule to its origin. The Swift-specific rules (`no-force-try`, `no-force-unwrap`, `no-fatal-error`, `no-implicitly-unwrapped-optionals`, `no-as-any-cast`, `no-swallowed-errors`, `no-bool-literal-comparisons`, `no-hardcoded-secrets`) extend the same ideas to patterns that only exist in Swift.
+
+Licensing follows that split: this project's original Swift code is Copyright (c) 2026 sawfwair / anti-slop-swift contributors, while the ported portions remain subject to Dillon Mulroy's MIT copyright — both notices live in [LICENSE](LICENSE). Thank you, Dillon.
 
 ## License
 
