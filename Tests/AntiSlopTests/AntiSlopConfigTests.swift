@@ -3,11 +3,12 @@ import XCTest
 @testable import AntiSlopCore
 
 final class AntiSlopConfigTests: XCTestCase {
-    private var temporaryDirectory: URL!
+    // New instance per test method, so the lazy directory is per-test fresh.
+    private lazy var temporaryDirectory = FileManager.default.temporaryDirectory
+        .appendingPathComponent("anti-slop-config-\(UUID().uuidString)")
+        .standardizedFileURL
 
     override func setUpWithError() throws {
-        temporaryDirectory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("anti-slop-config-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: true)
     }
 

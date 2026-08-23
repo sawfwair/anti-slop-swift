@@ -34,24 +34,29 @@ public enum AntiSlopConfig {
     /// Parse a config file into its disabled-rule set.
     public static func loadDisabledRules(from configFile: String) throws -> Set<String> {
         let data = try Data(contentsOf: URL(fileURLWithPath: configFile))
-        let decoded = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
-        guard let object = decoded as? [String: Any] else {
+        let decoded: ConfigFile
+        do {
+            decoded = try JSONDecoder().decode(ConfigFile.self, from: data)
+        } catch let error as DecodingError {
             throw ConfigError(
                 message:
-                    "\(configFile): expected top-level object with a \"disabled\" array of rule ids."
+                    "\(configFile): expected an object with an optional \"disabled\" array of rule ids (\(errorSummary(error)))."
             )
+        } catch {
+            throw ConfigError(message: "\(configFile): unreadable (\(error.localizedDescription)).")
         }
-        // Absent key means nothing disabled; present-but-wrong-type is an error.
-        if let disabled = object["disabled"] {
-            guard let ruleIDs = disabled as? [String] else {
-                throw ConfigError(
-                    message:
-                        "\(configFile): \"disabled\" must be an array of rule id strings."
-                )
-            }
-            return Set(ruleIDs)
+        return Set(decoded.disabled ?? [])
+    }
+
+    private static func errorSummary(_ error: DecodingError) -> String {
+        switch error {
+        case .typeMismatch(let type, _):
+            return "wrong type for \(type)"
+        case .dataCorrupted:
+            return "malformed JSON"
+        default:
+            return "invalid structure"
         }
-        return []
     }
 
     /// Convenience: resolve the disabled set for a run — explicit
@@ -84,4 +89,9 @@ public struct ConfigError: Error, CustomStringConvertible {
         self.message = message
     }
     public var description: String { message }
+}
+
+/// Typed shape of `.anti-slop.json`; unknown keys are ignored.
+private struct ConfigFile: Decodable {
+    let disabled: [String]?
 }
