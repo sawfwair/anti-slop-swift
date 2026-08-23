@@ -107,13 +107,19 @@ extension SlopRule {
             RequireSafetyCommentForForcedCastRule.self,
             NoForceTryRule.self,
             NoForceUnwrapRule.self,
+            NoFatalErrorRule.self,
+            NoImplicitlyUnwrappedOptionalsRule.self,
+            NoAsAnyCastRule.self,
             NoAnyParametersRule.self,
             NoAnyReturnsRule.self,
             NoAnyTypeAliasesRule.self,
             NoAnyDictionaryValueRule.self,
+            NoSwallowedErrorsRule.self,
+            NoBoolLiteralComparisonsRule.self,
             NoShapeInSymbolNamesRule.self,
             NoKeyValueCodingRule.self,
             NoRuntimeTypeSniffingRule.self,
+            NoHardcodedSecretsRule.self,
         ]
     }
 }
