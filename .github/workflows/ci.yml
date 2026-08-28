@@ -28,16 +28,18 @@ jobs:
           path: .build
           key: spm-${{ runner.os }}-${{ hashFiles('Package.resolved') }}
           restore-keys: spm-${{ runner.os }}-
-      - run: swift build
-      - run: swift test
+      - run: test -f Package.resolved
+      - run: swift build --force-resolved-versions
+      - run: swift test --force-resolved-versions
       # Dogfood: the linter must accept its own sources. The only permitted
       # hits are the no-shape-in-symbol-names rule referring to itself.
-      - run: swift run anti-slop Sources Tests --disable=no-shape-in-symbol-names
+      - run: .build/debug/anti-slop Sources Tests --disable=no-shape-in-symbol-names
       # The bundled install-skill assets must stay identical to Sources/.
       - uses: actions/setup-node@v4
         with:
           node-version: 24
       - run: node scripts/sync-skill-assets.mjs --check
+      - run: node --test scripts/security.test.mjs
 
   # The vendored copy must stand alone: valid manifest, building, tests green.
   vendored-package:
@@ -50,5 +52,6 @@ jobs:
       - name: Build and test the bundled skill assets
         run: |
           cd skills/install-anti-slop-swift/assets/anti-slop-swift
-          swift build
-          swift test
+          test -f Package.resolved
+          swift build --force-resolved-versions
+          swift test --force-resolved-versions

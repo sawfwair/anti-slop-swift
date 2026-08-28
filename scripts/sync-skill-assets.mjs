@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Syncs Sources/, Tests/, Package.swift, and LICENSE into the install skill's
+// Syncs Sources/, Tests/, Package.swift, Package.resolved, and LICENSE into the install skill's
 // bundled assets. Run after changing production source:
 //   node scripts/sync-skill-assets.mjs            # sync
 //   node scripts/sync-skill-assets.mjs --check    # verify (used by CI)
@@ -15,10 +15,12 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const source = join(root, "Sources");
 const tests = join(root, "Tests");
 const packageManifest = join(root, "Package.swift");
+const packageResolution = join(root, "Package.resolved");
 const license = join(root, "LICENSE");
 const destination = join(root, "skills/install-anti-slop-swift/assets/anti-slop-swift/Sources");
 const destinationTests = join(root, "skills/install-anti-slop-swift/assets/anti-slop-swift/Tests");
 const destinationManifest = join(root, "skills/install-anti-slop-swift/assets/anti-slop-swift/Package.swift");
+const destinationResolution = join(root, "skills/install-anti-slop-swift/assets/anti-slop-swift/Package.resolved");
 const destinationLicense = join(root, "skills/install-anti-slop-swift/assets/anti-slop-swift/LICENSE");
 const check = process.argv.includes("--check");
 
@@ -65,14 +67,16 @@ if (check) {
     }
   }
   assertIdentical(packageManifest, destinationManifest, "Package.swift asset");
+  assertIdentical(packageResolution, destinationResolution, "Package.resolved asset");
   assertIdentical(license, destinationLicense, "LICENSE asset");
-  console.log("Skill assets match Sources, Tests, Package.swift, and LICENSE.");
+  console.log("Skill assets match Sources, Tests, Package.swift, Package.resolved, and LICENSE.");
 } else {
   rmSync(destination, { recursive: true, force: true });
   rmSync(destinationTests, { recursive: true, force: true });
   mkdirSync(destination, { recursive: true });
   mkdirSync(destinationTests, { recursive: true });
   cpSync(packageManifest, destinationManifest);
+  cpSync(packageResolution, destinationResolution);
   cpSync(license, destinationLicense);
   for (const path of relativePaths(source)) {
     cpSync(join(source, path), join(destination, path));

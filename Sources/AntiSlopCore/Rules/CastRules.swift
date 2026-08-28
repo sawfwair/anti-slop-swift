@@ -25,7 +25,7 @@ public final class NoChainedTypeCastsRule: SlopRule {
         report(
             node.asKeyword,
             message:
-                "This cast is chained onto another cast (… as\(mark) \(node.type.trimmedDescription)); each hop fabricates evidence. Validate the real shape once at the boundary and convert explicitly."
+                "This cast is chained onto another cast (… as\(mark) \(DiagnosticText.syntax(node.type))); each hop fabricates evidence. Validate the real shape once at the boundary and convert explicitly."
         )
     }
 }
@@ -54,7 +54,7 @@ public final class RequireSafetyCommentForForcedCastRule: SlopRule {
         report(
             node.asKeyword,
             message:
-                "Forced cast to \(node.type.trimmedDescription) has no documented invariant. Add a // SAFETY: comment stating what you checked, or handle the failure case."
+                "Forced cast to \(DiagnosticText.syntax(node.type)) has no documented invariant. Add a // SAFETY: comment stating what you checked, or handle the failure case."
         )
     }
 }

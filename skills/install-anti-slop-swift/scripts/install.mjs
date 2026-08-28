@@ -32,16 +32,18 @@ function copyTree(from, to) {
 }
 
 if (!existsSync(source)) {
-  console.error(`Bundled assets missing at ${source}; reinstall the skill.`);
+  console.error(`Bundled assets missing at ${JSON.stringify(source)}; reinstall the skill.`);
   process.exit(1);
 }
 
 if (existsSync(target) && !force) {
-  console.error(`Refusing to overwrite ${target}. Re-run with --force only after reviewing the existing files.`);
+  console.error(`Refusing to overwrite ${JSON.stringify(target)}. Re-run with --force only after reviewing the existing files.`);
   process.exit(1);
 }
 
 rmSync(target, { recursive: true, force: true });
 copyTree(source, target);
-console.log(`Copied the anti-slop-swift package to ${target}`);
-console.log(`Lint with: cd ${target} && swift run anti-slop <path-to-swift-sources>`);
+// JSON-quote paths to escape newlines and ASCII control characters.
+console.log(`Copied the anti-slop-swift package to ${JSON.stringify(target)}`);
+console.log("Review Package.swift and Package.resolved, then build with: test -f Package.resolved && swift build --force-resolved-versions");
+console.log("Run the built .build/debug/anti-slop executable on the repository's owned source paths.");

@@ -18,7 +18,8 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/swiftlang/swift-syntax.git",
-            .upToNextMajor(from: "600.0.0")
+            // SwiftSyntax 600.0.1. Update deliberately after reviewing the new revision.
+            revision: "0687f71944021d616d34d922343dcef086855920"
         ),
     ],
     targets: [

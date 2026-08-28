@@ -37,6 +37,10 @@ func printRuleList() {
     }
 }
 
+func reportError(_ message: String) {
+    FileHandle.standardError.write(Data("[anti-slop] \(DiagnosticText.singleLine(message))\n".utf8))
+}
+
 struct Options {
     var paths: [String] = []
     var disabled: Set<String> = []
@@ -54,7 +58,7 @@ func parseArguments(_ arguments: ArraySlice<String>) -> Options? {
         } else if argument == "--list-rules" || argument == "-h" || argument == "--help" {
             return nil // handled by caller before parsing matters
         } else if argument.hasPrefix("-") && argument != "-" {
-            FileHandle.standardError.write(Data("[anti-slop] unknown option: \(argument)\n".utf8))
+            reportError("unknown option: \(argument)")
             exit(2)
         } else {
             options.paths.append(argument)
@@ -66,7 +70,7 @@ func parseArguments(_ arguments: ArraySlice<String>) -> Options? {
 func swiftFiles(under path: String) -> [String] {
     var isDirectory: ObjCBool = false
     guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
-        FileHandle.standardError.write(Data("[anti-slop] no such path: \(path)\n".utf8))
+        reportError("no such path: \(path)")
         exit(2)
     }
     guard isDirectory.boolValue else {
@@ -119,10 +123,10 @@ do {
         )
     )
 } catch let error as ConfigError {
-    FileHandle.standardError.write(Data("[anti-slop] \(error.message)\n".utf8))
+    reportError(error.message)
     exit(2)
 } catch {
-    FileHandle.standardError.write(Data("[anti-slop] config error: \(error)\n".utf8))
+    reportError("config error: \(error)")
     exit(2)
 }
 
@@ -133,7 +137,7 @@ let enabledRules = SlopRule.allRules.filter { !options.disabled.contains($0.id) 
 var totalViolations: [Violation] = []
 for file in files {
     guard let sourceText = try? String(contentsOfFile: file, encoding: .utf8) else {
-        FileHandle.standardError.write(Data("[anti-slop] skipping \(file): not UTF-8\n".utf8))
+        reportError("skipping \(file): not UTF-8")
         continue
     }
     let violations = AntiSlop.lint(
@@ -149,9 +153,7 @@ totalViolations.sort { lhs, rhs in
 }
 
 for violation in totalViolations {
-    print(
-        "\(violation.fileName):\(violation.line):\(violation.column): error: \(violation.description)"
-    )
+    print(violation.diagnosticLine)
 }
 
 if !totalViolations.isEmpty {

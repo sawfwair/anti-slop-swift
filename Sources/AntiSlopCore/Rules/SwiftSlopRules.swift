@@ -117,7 +117,7 @@ public final class NoAsAnyCastRule: SlopRule {
         report(
             node.asKeyword,
             message:
-                "Cast to \(node.type.trimmedDescription) erases everything known about the value. Keep the concrete type, introduce one that models it, or add a // SAFETY: comment stating why the widening is necessary."
+                "Cast to \(DiagnosticText.syntax(node.type)) erases everything known about the value. Keep the concrete type, introduce one that models it, or add a // SAFETY: comment stating why the widening is necessary."
         )
     }
 }
@@ -230,7 +230,7 @@ public final class NoHardcodedSecretsRule: SlopRule {
             report(
                 initializer,
                 message:
-                    "\"\(literal)\" looks like a committed credential. Read it from the environment, a secrets store, or local configuration instead."
+                    "String literal looks like a committed credential (value redacted). Read it from the environment, a secrets store, or local configuration instead."
             )
         }
     }

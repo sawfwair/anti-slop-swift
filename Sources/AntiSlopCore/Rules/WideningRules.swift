@@ -39,7 +39,7 @@ public final class NoKnownValueWideningRule: SlopRule {
                 report(
                     annotation.type,
                     message:
-                        "The explicit \(annotation.type.trimmedDescription) annotation on \(pattern.identifier.text) discards known type evidence. Keep inference, or use a named contract."
+                        "The explicit \(DiagnosticText.syntax(annotation.type)) annotation on \(pattern.identifier.text) discards known type evidence. Keep inference, or use a named contract."
                 )
             }
         }

@@ -24,7 +24,7 @@ public final class NoAnyParametersRule: SlopRule {
         report(
             node.type,
             message:
-                "Parameter is typed \(node.type.trimmedDescription); that hides the real contract from every caller. Name the concrete input type, or introduce one."
+                "Parameter is typed \(DiagnosticText.syntax(node.type)); that hides the real contract from every caller. Name the concrete input type, or introduce one."
         )
     }
 }
@@ -53,7 +53,7 @@ public final class NoAnyReturnsRule: SlopRule {
         report(
             returnClause.arrow,
             message:
-                "\(node.name.text)() declares it returns \(returnClause.type.trimmedDescription); callers learn nothing they can rely on. Return a concrete or opaque type."
+                "\(node.name.text)() declares it returns \(DiagnosticText.syntax(returnClause.type)); callers learn nothing they can rely on. Return a concrete or opaque type."
         )
     }
 }
@@ -108,7 +108,7 @@ public final class NoAnyDictionaryValueRule: SlopRule {
         report(
             node.colon,
             message:
-                "Dictionary values are typed \(node.value.trimmedDescription); every reader must cast to recover the real shape. Model entries as an enum or struct."
+                "Dictionary values are typed \(DiagnosticText.syntax(node.value)); every reader must cast to recover the real shape. Model entries as an enum or struct."
         )
     }
 }

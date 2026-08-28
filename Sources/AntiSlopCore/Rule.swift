@@ -25,13 +25,18 @@ public struct Violation: Equatable, Sendable {
     ) {
         self.fileName = fileName
         self.ruleID = ruleID
-        self.message = message
+        self.message = DiagnosticText.singleLine(message)
         self.line = line
         self.column = column
     }
 
     public var description: String {
-        "[\(ruleID)] \(message)"
+        DiagnosticText.singleLine("[\(ruleID)] \(message)")
+    }
+
+    /// A terminal-safe diagnostic. Keep `fileName` unchanged for file access.
+    public var diagnosticLine: String {
+        "\(DiagnosticText.singleLine(fileName)):\(line):\(column): error: \(description)"
     }
 }
 

@@ -86,7 +86,7 @@ public enum AntiSlopConfig {
 public struct ConfigError: Error, CustomStringConvertible {
     public let message: String
     public init(message: String) {
-        self.message = message
+        self.message = DiagnosticText.singleLine(message)
     }
     public var description: String { message }
 }
